@@ -1,0 +1,53 @@
+#
+msgid ""
+msgstr "Content-Type: text/plain; charset=utf-8\n"
+
+msgctxt "field:sale.configuration,credit_limit_amount:"
+msgid "Credit Limit Amount"
+msgstr "Import límit de crèdit"
+
+msgctxt "field:sale.configuration.credit_limit_amount,company:"
+msgid "Company"
+msgstr "Empresa"
+
+msgctxt "field:sale.configuration.credit_limit_amount,credit_limit_amount:"
+msgid "Credit Limit Amount"
+msgstr "Import límit de crèdit"
+
+msgctxt "field:sale.sale,sale_credit_limit_amount:"
+msgid "Credit Limit Amount"
+msgstr "Import límit de crèdit"
+
+msgctxt "model:ir.message,text:msg_configuration_not_found"
+msgid "Missing configuration Credit Limit Amount"
+msgstr "Falta la configuració de l'import límit de crèdit"
+
+msgctxt "model:sale.configuration.credit_limit_amount,name:"
+msgid "Configuration Company Credit Limit Amount"
+msgstr "Configuració de l'Import límit de crèdit per companyia"
+
+msgctxt "selection:sale.configuration,credit_limit_amount:"
+msgid "Total Amount"
+msgstr "Total"
+
+msgctxt "selection:sale.configuration,credit_limit_amount:"
+msgid "Untaxed Amount"
+msgstr "Import sense impostos"
+
+msgctxt ""
+"selection:sale.configuration.credit_limit_amount,credit_limit_amount:"
+msgid "Total Amount"
+msgstr "Total"
+
+msgctxt ""
+"selection:sale.configuration.credit_limit_amount,credit_limit_amount:"
+msgid "Untaxed Amount"
+msgstr "Import sense impostos"
+
+msgctxt "selection:sale.sale,sale_credit_limit_amount:"
+msgid "Total Amount"
+msgstr "Total"
+
+msgctxt "selection:sale.sale,sale_credit_limit_amount:"
+msgid "Untaxed Amount"
+msgstr "Import sense impostos"
