@@ -13,6 +13,38 @@ credit_limit_amount_values = [
     ('total_amount', 'Total Amount')]
 
 
+class Configuration(metaclass=PoolMeta):
+    __name__ = 'sale.configuration'
+
+    credit_limit_amount = fields.MultiValue(
+        fields.Selection(credit_limit_amount_values, "Credit Limit Amount",
+        required=True))
+
+    @classmethod
+    def multivalue_model(cls, field):
+        pool = Pool()
+        if field in {'credit_limit_amount'}:
+            return pool.get('sale.configuration.credit_limit_amount')
+        return super(Configuration, cls).multivalue_model(field)
+
+    @classmethod
+    def default_credit_limit_amount(cls, **pattern):
+        return cls.multivalue_model(
+            'credit_limit_amount').default_credit_limit_amount()
+
+
+class ConfigurationCompanyCreditLimitAmount(ModelSQL, CompanyValueMixin):
+    "Configuration Company Credit Limit Amount"
+    __name__ = 'sale.configuration.credit_limit_amount'
+
+    credit_limit_amount = fields.Selection(credit_limit_amount_values,
+        "Credit Limit Amount", required=True)
+
+    @classmethod
+    def default_credit_limit_amount(cls):
+        return 'total_amount'
+
+
 class Sale(metaclass=PoolMeta):
     __name__ = 'sale.sale'
 
@@ -28,10 +60,12 @@ class Sale(metaclass=PoolMeta):
     def default_sale_credit_limit_amount(cls, **pattern):
         pool = Pool()
         Configuration = pool.get('sale.configuration')
-        if not Configuration(1).get_multivalue(
+        config = Configuration(1)
+        if not config.get_multivalue(
                 'credit_limit_amount', **pattern):
-            raise UserError(gettext('helsa.msg_configuration_not_found'))
-        return Configuration(1).get_multivalue('credit_limit_amount',
+            raise UserError(gettext(
+                'sale_credit_limit_validation.msg_configuration_not_found'))
+        return config.get_multivalue('credit_limit_amount',
             **pattern)
 
     @property
@@ -55,26 +89,3 @@ class Sale(metaclass=PoolMeta):
         default.setdefault('sale_credit_limit_amount',
             cls.default_sale_credit_limit_amount())
         return super(Sale, cls).copy(sales, default=default)
-
-
-class Configuration(metaclass=PoolMeta):
-    __name__ = 'sale.configuration'
-
-    credit_limit_amount = fields.MultiValue(
-        fields.Selection(credit_limit_amount_values, "Credit Limit Amount",
-        required=True))
-
-    @classmethod
-    def multivalue_model(cls, field):
-        pool = Pool()
-        if field in {'credit_limit_amount'}:
-            return pool.get('sale.configuration.credit_limit_amount')
-        return super(Configuration, cls).multivalue_model(field)
-
-
-class ConfigurationCompanyCreditLimitAmount(ModelSQL, CompanyValueMixin):
-    "Configuration Company Credit Limit Amount"
-    __name__ = 'sale.configuration.credit_limit_amount'
-
-    credit_limit_amount = fields.Selection(credit_limit_amount_values,
-        "Credit Limit Amount", required=True)

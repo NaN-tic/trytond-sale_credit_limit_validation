@@ -16,7 +16,8 @@ class ShipmentOut(metaclass=PoolMeta):
 
         config = Config(1)
         if not config.credit_limit_amount:
-            raise UserError(gettext('helsa.msg_configuration_not_found'))
+            raise UserError(gettext(
+                'sale_credit_limit_validation.msg_configuration_not_found'))
 
         for shipment in shipments:
             sales = set([

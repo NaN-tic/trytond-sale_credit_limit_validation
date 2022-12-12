@@ -4,11 +4,13 @@
 from trytond.pool import Pool
 from . import party
 from . import sale
+from . import production
 
 def register():
     Pool.register(
+        sale.ConfigurationCompanyCreditLimitAmount,
+        sale.Configuration,
         party.Party,
         sale.Sale,
-        sale.Configuration,
-        sale.ConfigurationCompanyCreditLimitAmount,
+        production.Production,
         module='sale_credit_limit_validation', type_='model')
