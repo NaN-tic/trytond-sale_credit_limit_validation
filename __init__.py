@@ -12,5 +12,7 @@ def register():
         sale.Configuration,
         party.Party,
         sale.Sale,
-        production.Production,
         module='sale_credit_limit_validation', type_='model')
+    Pool.register(
+        production.Production,
+        module='sale_credit_limit_validation', type_='model', depends=['production'])
