@@ -29,4 +29,4 @@ class Production(metaclass=PoolMeta):
                 party.check_credit_limit(untaxed_amount,
                     origin=str(production))
 
-        super(Production, cls).assign_try(productions)
+        return super(Production, cls).assign_try(productions)
