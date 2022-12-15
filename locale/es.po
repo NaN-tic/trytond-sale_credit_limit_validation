@@ -2,52 +2,6 @@
 msgid ""
 msgstr "Content-Type: text/plain; charset=utf-8\n"
 
-msgctxt "field:sale.configuration,credit_limit_amount:"
-msgid "Credit Limit Amount"
-msgstr "Importe límite de crédito"
-
-msgctxt "field:sale.configuration.credit_limit_amount,company:"
-msgid "Company"
-msgstr "Empresa"
-
-msgctxt "field:sale.configuration.credit_limit_amount,credit_limit_amount:"
-msgid "Credit Limit Amount"
-msgstr "Importe límite de crédito"
-
-msgctxt "field:sale.sale,sale_credit_limit_amount:"
-msgid "Credit Limit Amount"
-msgstr "Importe límite de crédito"
-
 msgctxt "model:ir.message,text:msg_configuration_not_found"
 msgid "Missing configuration Credit Limit Amount"
 msgstr "Falta la configuración del importe límite de crédito"
-
-msgctxt "model:sale.configuration.credit_limit_amount,name:"
-msgid "Configuration Company Credit Limit Amount"
-msgstr "Configuración del Importe límite de crédito por compañía"
-
-msgctxt "selection:sale.configuration,credit_limit_amount:"
-msgid "Total Amount"
-msgstr "Total"
-
-msgctxt "selection:sale.configuration,credit_limit_amount:"
-msgid "Untaxed Amount"
-msgstr "Importe sin impuestos"
-
-msgctxt ""
-"selection:sale.configuration.credit_limit_amount,credit_limit_amount:"
-msgid "Total Amount"
-msgstr "Total"
-
-msgctxt ""
-"selection:sale.configuration.credit_limit_amount,credit_limit_amount:"
-msgid "Untaxed Amount"
-msgstr "Importe sin impuestos"
-
-msgctxt "selection:sale.sale,sale_credit_limit_amount:"
-msgid "Total Amount"
-msgstr "Total"
-
-msgctxt "selection:sale.sale,sale_credit_limit_amount:"
-msgid "Untaxed Amount"
-msgstr "Importe sin impuestos"

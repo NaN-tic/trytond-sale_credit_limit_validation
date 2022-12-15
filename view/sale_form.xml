@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<!-- The COPYRIGHT file at the top level of this repository contains the full
-     copyright notices and license terms. -->
-<data>
-    <xpath expr="/form/notebook/page[@id='other']/field[@name='confirmed_by']" position="after">
-        <label name="sale_credit_limit_amount"/>
-        <field name="sale_credit_limit_amount"/>
-    </xpath>
-</data>
