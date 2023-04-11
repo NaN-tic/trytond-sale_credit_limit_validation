@@ -22,8 +22,11 @@ class Production(metaclass=PoolMeta):
 
         for production in productions:
             if production.origin and isinstance(production.origin, SaleLine):
+                # get_credit_amount search all sales that state are ['confirmed', 'processing']
+                # Sales that come from shipments are in this state. Therefore, we must omit
+                # amounts from these sales and not sum
                 untaxed_amount = getattr(production.origin.sale,
-                    config.credit_limit_amount)
+                    config.credit_limit_amount) * -1
                 party = production.origin.sale.party
                 # The origin is only needed to create the warning key
                 party.check_credit_limit(untaxed_amount,

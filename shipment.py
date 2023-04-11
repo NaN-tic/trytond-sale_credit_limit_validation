@@ -23,8 +23,11 @@ class ShipmentOut(metaclass=PoolMeta):
             sales = set([
                 s.origin.sale for s in shipment.outgoing_moves if isinstance(
                 s.origin, SaleLine)])
+            # get_credit_amount search all sales that state are ['confirmed', 'processing']
+            # Sales that come from shipments are in this state. Therefore, we must omit
+            # amounts from these sales and not sum
             untaxed_amount = sum(
-                getattr(s, config.credit_limit_amount) for s in sales)
+                getattr(s, config.credit_limit_amount) for s in sales) * -1
             party = shipment.customer
             # The origin is only needed to create the warning key
             party.check_credit_limit(untaxed_amount, origin=str(shipment))
