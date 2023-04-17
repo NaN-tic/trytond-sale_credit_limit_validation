@@ -22,11 +22,13 @@ class ShipmentOut(metaclass=PoolMeta):
             raise UserError(gettext(
                 'sale_credit_limit_validation.msg_configuration_not_found'))
 
-        customers = list(set([s.customer for s in shipments]))
-        origin = hashlib.md5(
-                str(shipments).encode('utf-8')).hexdigest()
+        parties = list(set([s.customer for s in shipments]))
 
-        for customer in customers:
-            customer.check_credit_limit(Decimal(0), origin=origin)
+        for party in parties:
+            # The origin is only needed to create the warning key
+            origin = hashlib.md5(str([s for s in shipments
+                if s.customer == party]).encode('utf-8')).hexdigest()
+            party.check_credit_limit(Decimal(0),
+                origin='shipment_out_%s_%s' % (str(party), origin))
 
         return res

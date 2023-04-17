@@ -22,17 +22,20 @@ class Production(metaclass=PoolMeta):
             raise UserError(gettext(
                 'sale_credit_limit_validation.msg_configuration_not_found'))
 
-        parties = set()
+        parties = {}
         for production in productions:
             if production.origin and isinstance(production.origin, SaleLine):
-                parties.add(production.origin.sale.party)
+                party = production.origin.sale.party
+                if parties.get(party):
+                    parties[party] += [production]
+                else:
+                    parties[party] = [production]
 
-        origin = hashlib.md5(
-                str(productions).encode('utf-8')).hexdigest()
-
-        for party in parties:
+        for party, productions in parties.items():
             # The origin is only needed to create the warning key
+            origin = hashlib.md5(
+                    str(productions).encode('utf-8')).hexdigest()
             party.check_credit_limit(Decimal(0),
-                origin=origin)
+                origin='production_%s_%s' % (str(party), origin))
 
         return super(Production, cls).assign_try(productions)
