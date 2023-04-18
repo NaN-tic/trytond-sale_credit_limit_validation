@@ -1,0 +1,278 @@
+===================
+Production Scenario
+===================
+
+Imports::
+
+    >>> import datetime
+    >>> from dateutil.relativedelta import relativedelta
+    >>> from decimal import Decimal
+    >>> from proteus import Model, Wizard
+    >>> from trytond.tests.tools import activate_modules
+    >>> from trytond.modules.company.tests.tools import create_company, \
+    ...     get_company
+    >>> from trytond.modules.account.tests.tools import create_fiscalyear, \
+    ...     create_chart, get_accounts, create_tax
+    >>> from trytond.modules.account_invoice.tests.tools import \
+    ...     set_fiscalyear_invoice_sequences, create_payment_term
+    >>> from trytond.modules.production.production import BOM_CHANGES
+    >>> today = datetime.date.today()
+    >>> yesterday = today - relativedelta(days=1)
+    >>> before_yesterday = yesterday - relativedelta(days=1)
+    >>> from trytond.modules.account_credit_limit.exceptions import CreditLimitWarning
+
+Activate modules::
+
+    >>> config = activate_modules(['sale_supply_production',
+    ...   'sale_credit_limit_validation'])
+
+Create company::
+
+    >>> _ = create_company()
+    >>> company = get_company()
+
+Create fiscal year::
+
+    >>> fiscalyear = set_fiscalyear_invoice_sequences(
+    ...     create_fiscalyear(company))
+    >>> fiscalyear.click('create_period')
+    >>> period = fiscalyear.periods[0]
+
+Create chart of accounts::
+
+    >>> _ = create_chart(company)
+    >>> accounts = get_accounts(company)
+    >>> receivable = accounts['receivable']
+    >>> payable = accounts['payable']
+    >>> revenue = accounts['revenue']
+    >>> expense = accounts['expense']
+    >>> account_tax = accounts['tax']
+    >>> account_cash = accounts['cash']
+
+Create parties::
+
+    >>> Party = Model.get('party.party')
+    >>> supplier = Party(name='Supplier')
+    >>> supplier.save()
+    >>> customer = Party(name='Customer')
+    >>> customer.credit_limit_amount = Decimal('60')
+    >>> customer.save()
+
+Create payment term::
+
+    >>> payment_term = create_payment_term()
+    >>> payment_term.save()
+
+Configure production location::
+
+    >>> Location = Model.get('stock.location')
+    >>> warehouse, = Location.find([('code', '=', 'WH')])
+    >>> production_location, = Location.find([('code', '=', 'PROD')])
+    >>> warehouse.production_location = production_location
+    >>> warehouse.save()
+
+Create tax::
+
+    >>> tax = create_tax(Decimal('.10'))
+    >>> tax.save()
+
+Create account categories::
+
+    >>> ProductCategory = Model.get('product.category')
+    >>> account_category = ProductCategory(name="Account Category")
+    >>> account_category.accounting = True
+    >>> account_category.account_expense = expense
+    >>> account_category.account_revenue = revenue
+    >>> account_category.save()
+
+    >>> account_category_tax, = account_category.duplicate()
+    >>> account_category_tax.customer_taxes.append(tax)
+    >>> account_category_tax.save()
+
+Create product::
+
+    >>> ProductUom = Model.get('product.uom')
+    >>> unit, = ProductUom.find([('name', '=', 'Unit')])
+    >>> ProductTemplate = Model.get('product.template')
+    >>> Product = Model.get('product.product')
+
+    >>> template = ProductTemplate()
+    >>> template.name = 'product'
+    >>> template.default_uom = unit
+    >>> template.type = 'goods'
+    >>> template.producible = True
+    >>> template.salable = True
+    >>> template.list_price = Decimal(30)
+    >>> template.account_category = account_category_tax
+    >>> product, = template.products
+    >>> product.cost_price = Decimal(20)
+    >>> template.save()
+    >>> product, = template.products
+
+Create Components::
+
+    >>> template1 = ProductTemplate()
+    >>> template1.name = 'component 1'
+    >>> template1.default_uom = unit
+    >>> template1.type = 'goods'
+    >>> template1.list_price = Decimal(5)
+    >>> component1, = template1.products
+    >>> component1.cost_price = Decimal(1)
+    >>> template1.save()
+    >>> component1, = template1.products
+
+    >>> meter, = ProductUom.find([('name', '=', 'Meter')])
+    >>> centimeter, = ProductUom.find([('name', '=', 'Centimeter')])
+
+    >>> template2 = ProductTemplate()
+    >>> template2.name = 'component 2'
+    >>> template2.default_uom = meter
+    >>> template2.type = 'goods'
+    >>> template2.list_price = Decimal(7)
+    >>> component2, = template2.products
+    >>> component2.cost_price = Decimal(5)
+    >>> template2.save()
+    >>> component2, = template2.products
+
+Create Bill of Material::
+
+    >>> BOM = Model.get('production.bom')
+    >>> BOMInput = Model.get('production.bom.input')
+    >>> BOMOutput = Model.get('production.bom.output')
+    >>> bom = BOM(name='product')
+    >>> input1 = BOMInput()
+    >>> bom.inputs.append(input1)
+    >>> input1.product = component1
+    >>> input1.quantity = 5
+    >>> input2 = BOMInput()
+    >>> bom.inputs.append(input2)
+    >>> input2.product = component2
+    >>> input2.quantity = 150
+    >>> input2.uom = centimeter
+    >>> output = BOMOutput()
+    >>> bom.outputs.append(output)
+    >>> output.product = product
+    >>> output.quantity = 1
+    >>> bom.save()
+
+    >>> ProductBom = Model.get('product.product-production.bom')
+    >>> product.boms.append(ProductBom(bom=bom))
+    >>> product.save()
+
+    >>> ProductionLeadTime = Model.get('production.lead_time')
+    >>> production_lead_time = ProductionLeadTime()
+    >>> production_lead_time.product = product
+    >>> production_lead_time.bom = bom
+    >>> production_lead_time.lead_time = datetime.timedelta(1)
+    >>> production_lead_time.save()
+
+Create an Inventory::
+
+    >>> Inventory = Model.get('stock.inventory')
+    >>> InventoryLine = Model.get('stock.inventory.line')
+    >>> Location = Model.get('stock.location')
+    >>> storage, = Location.find([
+    ...         ('code', '=', 'STO'),
+    ...         ])
+    >>> inventory = Inventory()
+    >>> inventory.location = storage
+    >>> inventory_line1 = InventoryLine()
+    >>> inventory.lines.append(inventory_line1)
+    >>> inventory_line1.product = component1
+    >>> inventory_line1.quantity = 20
+    >>> inventory_line2 = InventoryLine()
+    >>> inventory.lines.append(inventory_line2)
+    >>> inventory_line2.product = component2
+    >>> inventory_line2.quantity = 6
+    >>> inventory.click('confirm')
+    >>> inventory.state
+    'done'
+
+Sale product::
+
+    >>> Sale = Model.get('sale.sale')
+    >>> SaleLine = Model.get('sale.line')
+    >>> sale = Sale()
+    >>> sale.party = customer
+    >>> sale.payment_term = payment_term
+    >>> sale.invoice_method = 'order'
+    >>> sale_line = SaleLine()
+    >>> sale.lines.append(sale_line)
+    >>> sale_line.product = product
+    >>> sale_line.quantity = 1.0
+    >>> sale.click('quote')
+    >>> sale.click('confirm')
+    >>> sale.state
+    'processing'
+    >>> sale_line, = sale.lines
+    >>> production, = sale.productions
+    >>> production.product == product
+    True
+    >>> production.quantity
+    1.0
+    >>> len(production.inputs)
+    2
+    >>> len(production.outputs)
+    1
+
+Second Sale::
+
+    >>> Sale = Model.get('sale.sale')
+    >>> SaleLine = Model.get('sale.line')
+    >>> sale = Sale()
+    >>> sale.party = customer
+    >>> sale.payment_term = payment_term
+    >>> sale.invoice_method = 'order'
+    >>> sale_line = SaleLine()
+    >>> sale.lines.append(sale_line)
+    >>> sale_line.product = product
+    >>> sale_line.quantity = 1.0
+    >>> sale.click('quote')
+    >>> sale.click('confirm')  # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+        ...
+    trytond.modules.account_credit_limit.exceptions.CreditLimitWarning: ...
+    >>> try:
+    ...   sale.click('confirm')
+    ... except CreditLimitWarning as warning:
+    ...   _, (key, *_) = warning.args
+    ...   raise  # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+      ...
+    CreditLimitWarning: ...
+
+    >>> Warning = Model.get('res.user.warning')
+    >>> Warning(user=config.user, name=key).save()
+
+    >>> sale.click('confirm')
+    >>> sale.state == 'processing'
+    True
+    >>> sale_line, = sale.lines
+    >>> production, = sale.productions
+    >>> production.product == product
+    True
+    >>> production.quantity
+    1.0
+    >>> len(production.inputs)
+    2
+    >>> len(production.outputs)
+    1
+    >>> production.click('wait')
+    >>> production.click('assign_try') # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+        ...
+    trytond.modules.account_credit_limit.exceptions.CreditLimitWarning: ...
+
+Increase credit limit::
+
+    >>> customer.credit_limit_amount = Decimal('150')
+    >>> customer.save()
+
+Continue assign when customer has enough credit limit::
+
+    >>> production.click('assign_try')
+    True
+    >>> production.click('run')
+    >>> production.click('done')
+    >>> production.state == 'done'
+    True
