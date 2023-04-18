@@ -17,6 +17,7 @@ Imports::
     >>> from trytond.modules.account_invoice.tests.tools import \
     ...     set_fiscalyear_invoice_sequences, create_payment_term
     >>> today = datetime.date.today()
+    >>> from trytond.modules.account_credit_limit.exceptions import CreditLimitWarning
 
 Activate modules::
 
@@ -57,15 +58,8 @@ Create chart of accounts::
     >>> cash = accounts['cash']
 
     >>> Journal = Model.get('account.journal')
-    >>> PaymentMethod = Model.get('account.invoice.payment.method')
     >>> cash_journal, = Journal.find([('type', '=', 'cash')])
     >>> cash_journal.save()
-    >>> payment_method = PaymentMethod()
-    >>> payment_method.name = 'Cash'
-    >>> payment_method.journal = cash_journal
-    >>> payment_method.credit_account = cash
-    >>> payment_method.debit_account = cash
-    >>> payment_method.save()
 
 Create tax::
 
@@ -150,6 +144,12 @@ First Sale::
     >>> sale.click('confirm')
     >>> sale.state == 'processing'
     True
+    >>> shipment, = sale.shipments
+    >>> shipment.click('assign_try')
+    True
+    >>> shipment.click('pick')
+    >>> shipment.click('pack')
+    >>> shipment.click('done')
 
 Second Sale::
 
@@ -169,18 +169,35 @@ Second Sale::
     Traceback (most recent call last):
         ...
     trytond.modules.account_credit_limit.exceptions.CreditLimitWarning: ...
+    >>> try:
+    ...   sale.click('confirm')
+    ... except CreditLimitWarning as warning:
+    ...   _, (key, *_) = warning.args
+    ...   raise  # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+      ...
+    CreditLimitWarning: ...
+
+    >>> Warning = Model.get('res.user.warning')
+    >>> Warning(user=config.user, name=key).save()
+
+    >>> sale.click('confirm')
+    >>> sale.state == 'processing'
+    True
+
+    >>> shipment, = sale.shipments
+    >>> shipment.click('assign_try') # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+        ...
+    trytond.modules.account_credit_limit.exceptions.CreditLimitWarning: ...
 
 Increase credit limit::
 
     >>> customer.credit_limit_amount = Decimal('150')
     >>> customer.save()
 
-Continue with second sale::
+Continue assign when customer has enough credit limit::
 
-    >>> sale.click('confirm')
-    >>> sale.state == 'processing'
-    True
-    >>> shipment, = sale.shipments
     >>> shipment.click('assign_try')
     True
     >>> shipment.click('pick')
