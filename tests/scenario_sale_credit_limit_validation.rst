@@ -146,7 +146,6 @@ First Sale::
     True
     >>> shipment, = sale.shipments
     >>> shipment.click('assign_try')
-    True
     >>> shipment.click('pick')
     >>> shipment.click('pack')
     >>> shipment.click('done')
@@ -199,7 +198,6 @@ Increase credit limit::
 Continue assign when customer has enough credit limit::
 
     >>> shipment.click('assign_try')
-    True
     >>> shipment.click('pick')
     >>> shipment.click('pack')
     >>> shipment.click('done')
@@ -211,5 +209,5 @@ Reload sale::
     True
     >>> sale.shipment_state == 'sent'
     True
-    >>> sale.invoice_state == 'waiting'
+    >>> sale.invoice_state == 'pending'
     True

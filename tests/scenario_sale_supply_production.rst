@@ -15,7 +15,6 @@ Imports::
     ...     create_chart, get_accounts, create_tax
     >>> from trytond.modules.account_invoice.tests.tools import \
     ...     set_fiscalyear_invoice_sequences, create_payment_term
-    >>> from trytond.modules.production.production import BOM_CHANGES
     >>> today = datetime.date.today()
     >>> yesterday = today - relativedelta(days=1)
     >>> before_yesterday = yesterday - relativedelta(days=1)
@@ -271,7 +270,6 @@ Increase credit limit::
 Continue assign when customer has enough credit limit::
 
     >>> production.click('assign_try')
-    True
     >>> production.click('run')
     >>> production.click('done')
     >>> production.state == 'done'
