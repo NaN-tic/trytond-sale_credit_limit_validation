@@ -178,7 +178,7 @@ Second Sale::
     CreditLimitWarning: ...
 
     >>> Warning = Model.get('res.user.warning')
-    >>> Warning(user=config.user, name=key).save()
+    >>> Warning.skip(key, True, config.context)
 
     >>> sale.click('confirm')
     >>> sale.state == 'processing'
