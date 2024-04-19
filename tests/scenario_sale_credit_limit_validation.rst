@@ -148,7 +148,7 @@ First Sale::
     >>> shipment.click('assign_try')
     >>> shipment.click('pick')
     >>> shipment.click('pack')
-    >>> shipment.click('done')
+    >>> shipment.click('do')
 
 Second Sale::
 
@@ -200,7 +200,7 @@ Continue assign when customer has enough credit limit::
     >>> shipment.click('assign_try')
     >>> shipment.click('pick')
     >>> shipment.click('pack')
-    >>> shipment.click('done')
+    >>> shipment.click('do')
 
 Reload sale::
 

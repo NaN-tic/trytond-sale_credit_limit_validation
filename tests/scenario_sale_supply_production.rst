@@ -271,6 +271,6 @@ Continue assign when customer has enough credit limit::
 
     >>> production.click('assign_try')
     >>> production.click('run')
-    >>> production.click('done')
+    >>> production.click('do')
     >>> production.state == 'done'
     True
