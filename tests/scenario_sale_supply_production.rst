@@ -100,6 +100,7 @@ Create product::
     >>> template.default_uom = unit
     >>> template.type = 'goods'
     >>> template.producible = True
+    >>> template.supply_production_on_sale = True
     >>> template.salable = True
     >>> template.list_price = Decimal(30)
     >>> template.account_category = account_category_tax
