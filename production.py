@@ -26,16 +26,19 @@ class Production(metaclass=PoolMeta):
         for production in productions:
             if production.origin and isinstance(production.origin, SaleLine):
                 party = production.origin.sale.party
-                if parties.get(party):
-                    parties[party] += [production]
+                key = (party, production.company)
+                if parties.get(key):
+                    parties[key] += [production]
                 else:
-                    parties[party] = [production]
+                    parties[key] = [production]
 
-        for party, productions in parties.items():
+        for key, productions in parties.items():
+            party, company = key
             # The origin is only needed to create the warning key
             origin = hashlib.md5(
                     str(productions).encode('utf-8')).hexdigest()
-            party.check_credit_limit(Decimal(0),
+            minimal_amount = Decimal(str(10 ** -company.currency.digits))
+            party.check_credit_limit(minimal_amount, company,
                 origin='production_%s_%s' % (str(party), origin))
 
         return super(Production, cls).assign_try(productions)
