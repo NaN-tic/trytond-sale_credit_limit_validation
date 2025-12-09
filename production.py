@@ -14,8 +14,8 @@ class Production(metaclass=PoolMeta):
     @dualmethod
     def assign_try(cls, productions):
         pool = Pool()
-        SaleLine = pool.get('sale.line')
         Config = pool.get('sale.configuration')
+        SaleLine = pool.get('sale.line')
 
         config = Config(1)
         if not config.credit_limit_amount:
@@ -26,16 +26,13 @@ class Production(metaclass=PoolMeta):
         for production in productions:
             if production.origin and isinstance(production.origin, SaleLine):
                 party = production.origin.sale.party
-                if parties.get(party):
+                if party in parties:
                     parties[party] += [production]
                 else:
                     parties[party] = [production]
 
         for party, productions in parties.items():
-            # The origin is only needed to create the warning key
-            origin = hashlib.md5(
-                    str(productions).encode('utf-8')).hexdigest()
-            party.check_credit_limit(Decimal(0),
-                origin='production_%s_%s' % (str(party), origin))
+            for production in productions:
+                party.check_credit_limit(Decimal(0), origin=str(production))
 
-        return super(Production, cls).assign_try(productions)
+        super().assign_try(productions)

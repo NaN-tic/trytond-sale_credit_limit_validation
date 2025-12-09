@@ -13,7 +13,6 @@ class ShipmentOut(metaclass=PoolMeta):
 
     @dualmethod
     def assign_try(cls, shipments):
-        res = super().assign_try(shipments)
         pool = Pool()
         Config = pool.get('sale.configuration')
 
@@ -22,13 +21,8 @@ class ShipmentOut(metaclass=PoolMeta):
             raise UserError(gettext(
                 'sale_credit_limit_validation.msg_configuration_not_found'))
 
-        parties = list(set([s.customer for s in shipments]))
+        for shipment in shipments:
+            party = shipment.customer
+            party.check_credit_limit(Decimal(0), origin=str(shipment))
 
-        for party in parties:
-            # The origin is only needed to create the warning key
-            origin = hashlib.md5(str([s for s in shipments
-                if s.customer == party]).encode('utf-8')).hexdigest()
-            party.check_credit_limit(Decimal(0),
-                origin='shipment_out_%s_%s' % (str(party), origin))
-
-        return res
+        super().assign_try(shipments)
