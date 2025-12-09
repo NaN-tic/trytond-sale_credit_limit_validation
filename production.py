@@ -34,6 +34,6 @@ class Production(metaclass=PoolMeta):
             for production in productions:
                 company = production.company
                 minimal_amount = Decimal(str(10 ** -company.currency.digits))
-                party.check_credit_limit(minimal_amount, company, origin=str(production))
+                party.check_credit_limit(minimal_amount, company, origin=production)
 
         super().assign_try(productions)

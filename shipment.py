@@ -24,6 +24,6 @@ class ShipmentOut(metaclass=PoolMeta):
             party = shipment.customer
             company = shipment.company
             minimal_amount = Decimal(str(10 ** -company.currency.digits))
-            party.check_credit_limit(minimal_amount, company, origin=str(shipment))
+            party.check_credit_limit(minimal_amount, company, origin=shipment)
 
         super().assign_try(shipments)
