@@ -1,6 +1,5 @@
 # This file is part of Tryton.  The COPYRIGHT file at the top level of
 # this repository contains the full copyright notices and license terms.
-import hashlib
 from trytond.model import dualmethod
 from trytond.pool import PoolMeta, Pool
 from trytond.exceptions import UserError
@@ -14,8 +13,8 @@ class Production(metaclass=PoolMeta):
     @dualmethod
     def assign_try(cls, productions):
         pool = Pool()
-        SaleLine = pool.get('sale.line')
         Config = pool.get('sale.configuration')
+        SaleLine = pool.get('sale.line')
 
         config = Config(1)
         if not config.credit_limit_amount:
@@ -26,19 +25,15 @@ class Production(metaclass=PoolMeta):
         for production in productions:
             if production.origin and isinstance(production.origin, SaleLine):
                 party = production.origin.sale.party
-                key = (party, production.company)
-                if parties.get(key):
-                    parties[key] += [production]
+                if party in parties:
+                    parties[party] += [production]
                 else:
-                    parties[key] = [production]
+                    parties[party] = [production]
 
-        for key, productions in parties.items():
-            party, company = key
-            # The origin is only needed to create the warning key
-            origin = hashlib.md5(
-                    str(productions).encode('utf-8')).hexdigest()
-            minimal_amount = Decimal(str(10 ** -company.currency.digits))
-            party.check_credit_limit(minimal_amount, company,
-                origin='production_%s_%s' % (str(party), origin))
+        for party, productions in parties.items():
+            for production in productions:
+                company = production.company
+                minimal_amount = Decimal(str(10 ** -company.currency.digits))
+                party.check_credit_limit(minimal_amount, company, origin=str(production))
 
-        return super(Production, cls).assign_try(productions)
+        super().assign_try(productions)
