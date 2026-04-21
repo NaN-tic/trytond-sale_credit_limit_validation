@@ -119,7 +119,7 @@ class Test(unittest.TestCase):
         sale = Sale()
         sale.party = customer
         sale.payment_term = payment_term
-        sale.invoice_method = 'shipment'
+        sale.invoice_method = 'fulfillment'
         sale.shipment_method = 'order'
         sale_line = SaleLine()
         sale.lines.append(sale_line)
@@ -144,7 +144,7 @@ class Test(unittest.TestCase):
         sale = Sale()
         sale.party = customer
         sale.payment_term = payment_term
-        sale.invoice_method = 'shipment'
+        sale.invoice_method = 'fulfillment'
         sale.shipment_method = 'order'
         sale_line = SaleLine()
         sale.lines.append(sale_line)
