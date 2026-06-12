@@ -50,6 +50,7 @@ class Test(unittest.TestCase):
         fiscalyear = set_fiscalyear_invoice_sequences(
             create_fiscalyear(company))
         fiscalyear.click('create_period')
+        period = fiscalyear.periods[0]
 
         # Create chart of accounts
         _ = create_chart(company)
@@ -67,8 +68,12 @@ class Test(unittest.TestCase):
         # Create parties
         Party = Model.get('party.party')
         customer = Party(name='Customer')
-        customer.credit_limit_amount = Decimal('60')
         customer.save()
+        invoice_party = Party(name='Invoice Party')
+        invoice_party.credit_limit_amount = Decimal('60')
+        invoice_party.save()
+        shipment_party = Party(name='Shipment Party')
+        shipment_party.save()
 
         # Create account categories
         ProductCategory = Model.get('product.category')
@@ -117,7 +122,7 @@ class Test(unittest.TestCase):
         Sale = Model.get('sale.sale')
         SaleLine = Model.get('sale.line')
         sale = Sale()
-        sale.party = customer
+        sale.party = invoice_party
         sale.payment_term = payment_term
         sale.invoice_method = 'fulfillment'
         sale.shipment_method = 'order'
@@ -135,14 +140,35 @@ class Test(unittest.TestCase):
         sale.click('confirm')
         self.assertEqual(sale.state, 'processing')
         shipment, = sale.shipments
+        self.assertEqual(shipment.customer, invoice_party)
         shipment.click('assign_try')
         shipment.click('pick')
         shipment.click('pack')
         shipment.click('do')
 
+        # Create receivable for invoice party
+        Move = Model.get('account.move')
+        revenue_journal, = Journal.find([('code', '=', 'REV')])
+        move = Move()
+        move.period = period
+        move.journal = revenue_journal
+        move.date = period.start_date
+        line = move.lines.new()
+        line.account = revenue
+        line.credit = Decimal('40')
+        line = move.lines.new()
+        line.account = accounts['receivable']
+        line.debit = Decimal('40')
+        line.party = invoice_party
+        move.save()
+        move.click('post')
+        self.assertEqual(move.state, 'posted')
+
         # Second Sale
         sale = Sale()
         sale.party = customer
+        sale.invoice_party = invoice_party
+        sale.shipment_party = shipment_party
         sale.payment_term = payment_term
         sale.invoice_method = 'fulfillment'
         sale.shipment_method = 'order'
@@ -172,13 +198,14 @@ class Test(unittest.TestCase):
         sale.click('confirm')
         self.assertEqual(sale.state, 'processing')
         shipment, = sale.shipments
+        self.assertEqual(shipment.customer, shipment_party)
 
         with self.assertRaises(CreditLimitWarning):
             shipment.click('assign_try')
 
         # Increase credit limit
-        customer.credit_limit_amount = Decimal('150')
-        customer.save()
+        invoice_party.credit_limit_amount = Decimal('150')
+        invoice_party.save()
 
         # Continue assign when customer has enough credit limit
         shipment.click('assign_try')
