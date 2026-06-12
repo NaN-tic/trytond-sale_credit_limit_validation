@@ -10,6 +10,18 @@ from decimal import Decimal
 class ShipmentOut(metaclass=PoolMeta):
     __name__ = 'stock.shipment.out'
 
+    def _credit_limit_parties(self):
+        parties = []
+        for move in self.outgoing_moves:
+            sale = move.sale
+            if not sale:
+                parties.append(self.customer)
+                continue
+            parties.append(sale.invoice_party or sale.party)
+        if parties:
+            return list(set(parties))
+        return [self.customer]
+
     @dualmethod
     def assign_try(cls, shipments):
         pool = Pool()
@@ -21,9 +33,10 @@ class ShipmentOut(metaclass=PoolMeta):
                 'sale_credit_limit_validation.msg_configuration_not_found'))
 
         for shipment in shipments:
-            party = shipment.customer
             company = shipment.company
             minimal_amount = Decimal(str(10 ** -company.currency.digits))
-            party.check_credit_limit(minimal_amount, company, origin=str(shipment))
+            for party in shipment._credit_limit_parties():
+                party.check_credit_limit(
+                    minimal_amount, company, origin=str(shipment))
 
         super().assign_try(shipments)
