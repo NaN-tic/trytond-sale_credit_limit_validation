@@ -1,0 +1,24 @@
+#
+msgid ""
+msgstr ""
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgctxt "model:ir.message,text:msg_configuration_not_found"
+msgid "Missing configuration Credit Limit Amount"
+msgstr "缺少信用额度配置"
+
+msgctxt "field:sale.configuration,credit_limit_amount:"
+msgid "Credit Limit Amount"
+msgstr "信用额度金额"
+
+msgctxt "field:sale.configuration.credit_limit_amount,credit_limit_amount:"
+msgid "Credit Limit Amount"
+msgstr "信用额度金额"
+
+msgctxt "field:sale.sale,sale_credit_limit_amount:"
+msgid "Credit Limit Amount"
+msgstr "信用额度金额"
